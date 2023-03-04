@@ -134,24 +134,25 @@ void handle_file_input(Graph &graph)
     input.close();
 }
 
-int handle_mode_input(WINDOW *w)
+int handle_mode_input()
 {
     curs_set(0);
-    Graph::TransportId chosen_mode;
-    const unsigned int modes_count = 5;
+    Graph::TransportId chosen_mode = 0;
+    const unsigned int modes_count = 6;
     const string modes[modes_count] = {
         " 1. Среди кратчайших по времени путей между двумя городами найти путь минимальной стоимости",
         " 2. Среди путей между двумя городами найти путь минимальной стоимости",
         " 3. Среди путей между двумя городами найти путь минимальный по числу посещенных городов",
         " 4. Найти множество городов (и минимальных по стоимости путей к ним), достижимых из города отправления\n     не более чем за обозначенную сумму денег",
-        " 5. Найти множество городов (и минимальных по времени путей к ним), достижимых из города отправления\n     не более чем за обозначенное время"};
+        " 5. Найти множество городов (и минимальных по времени путей к ним), достижимых из города отправления\n     не более чем за обозначенное время",
+        "Завершить программу"};
     int user_choice;
     bool is_proccessing = true;
 
-    wclear(w);
-    wrefresh(w);
+    // clear();
+    // refresh();
 
-    mvwprintw(w, 0, 0, "Добро пожаловать! Выберите режим работы");
+    mvprintw(0, 0, "Добро пожаловать! Выберите режим работы");
 
     while (is_proccessing)
     {
@@ -160,19 +161,25 @@ int handle_mode_input(WINDOW *w)
         {
             if (chosen_mode == i)
             {
-                wattron(w, A_REVERSE);
+                attron(A_REVERSE);
             }
             if (i == 4)
             {
-                mvwprintw(w, i + 3, 0, modes[i].c_str());
+                mvprintw(i + 3, 0, modes[i].c_str());
+            }
+            else if (i == 5)
+            {
+                attron(COLOR_PAIR(5));
+                mvprintw(i + 5, 0, modes[i].c_str());
+                attroff(COLOR_PAIR(5));
             }
             else
             {
-                mvwprintw(w, i + 2, 0, modes[i].c_str());
+                mvprintw(i + 2, 0, modes[i].c_str());
             }
-            wattroff(w, A_REVERSE);
+            attroff(A_REVERSE);
         }
-        user_choice = wgetch(w);
+        user_choice = getch();
 
         switch (user_choice)
         {
@@ -200,21 +207,28 @@ int handle_mode_input(WINDOW *w)
             break;
         }
 
-        if (user_choice == 27)
-        {
-            is_proccessing = false;
-            return -1;
-        }
+        // if (user_choice == 27)
+        // {
+        //     is_proccessing = false;
+        //     return -1;
+        // }
         if (user_choice == 10)
         {
             is_proccessing = false;
-            return chosen_mode;
+            if (chosen_mode == 5)
+            {
+                return -1;
+            }
+            else
+            {
+                return chosen_mode;
+            }
         }
     }
     return -1;
 }
 
-int handle_finish_app(WINDOW *w)
+int handle_finish_app()
 {
     curs_set(0);
     const unsigned int modes_count = 2;
@@ -225,7 +239,7 @@ int handle_finish_app(WINDOW *w)
     int user_choice;
     bool is_proccessing = true;
 
-    mvwprintw(w, 0, 0, "Выберите режим работы");
+    mvprintw(0, 0, "Выберите режим работы");
 
     while (is_proccessing)
     {
@@ -234,19 +248,19 @@ int handle_finish_app(WINDOW *w)
         {
             if (chosen_mode == i)
             {
-                wattron(w, A_REVERSE);
+                attron(A_REVERSE);
             }
             if (i == 4)
             {
-                mvwprintw(w, i + 3, 0, modes[i].c_str());
+                mvprintw(i + 3, 0, modes[i].c_str());
             }
             else
             {
-                mvwprintw(w, i + 2, 0, modes[i].c_str());
+                mvprintw(i + 2, 0, modes[i].c_str());
             }
-            wattroff(w, A_REVERSE);
+            attroff(A_REVERSE);
         }
-        user_choice = wgetch(w);
+        user_choice = getch();
 
         switch (user_choice)
         {
@@ -446,26 +460,41 @@ long handle_cost_limit_input()
     long cost_limit = -1;
     cost_limit_input = handle_string_input(1);
 
-    int margin_1 = 0;
     while (cost_limit == -1)
     {
         cost_limit = validate_number_input(cost_limit_input);
         if (cost_limit == -1)
         {
-            mvprintw(3 + margin_1, 0, "Число отрицательно или введено некорректно, повторите попытку");
-            move(4 + margin_1, 0);
-            cost_limit_input = handle_string_input(4 + margin_1);
-            margin_1 += 2;
+            move(3, 0);
+            clrtoeol();
+            move(4, 0);
+            clrtoeol();
+            mvprintw(3, 0, "Число отрицательно или введено некорректно, повторите попытку");
+            move(4, 0);
+            cost_limit_input = handle_string_input(4);
         }
     }
 
-    mvprintw(margin_1 + 3, 0, "######//~~~~~~//######");
-    mvprintw(margin_1 + 5, 0, "Ограничение по стоимости: ");
-    mvprintw(margin_1 + 5, 24, cost_limit_input.c_str());
-    mvprintw(margin_1 + 5, 25 + cost_limit_input.length(), "часов");
-    mvprintw(margin_1 + 7, 0, "######//~~~~~~//######");
+    move(3, 0);
+    clrtoeol();
+    move(4, 0);
+    clrtoeol();
 
-    move(margin_1 + 9, 0);
+    attron(COLOR_PAIR(3));
+    mvprintw(3, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
+    mvprintw(5, 0, "Ограничение по стоимости: ");
+    attron(COLOR_PAIR(2));
+    mvprintw(5, 25, cost_limit_input.c_str());
+    mvprintw(5, 26 + cost_limit_input.length(), "рублей");
+    attroff(COLOR_PAIR(2));
+    attron(COLOR_PAIR(3));
+    mvprintw(7, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
+
+    move(9, 0);
+
+    wait_for_enter(9);
 
     return cost_limit;
 }
@@ -483,26 +512,41 @@ long handle_time_limit_input()
     long time_limit = -1;
     time_limit_input = handle_string_input(1);
 
-    int margin_1 = 0;
     while (time_limit == -1)
     {
         time_limit = validate_number_input(time_limit_input);
         if (time_limit == -1)
         {
-            mvprintw(3 + margin_1, 0, "Число отрицательно или введено некорректно, повторите попытку");
-            move(4 + margin_1, 0);
-            time_limit_input = handle_string_input(4 + margin_1);
-            margin_1 += 2;
+            move(3, 0);
+            clrtoeol();
+            move(4, 0);
+            clrtoeol();
+            mvprintw(3, 0, "Число отрицательно или введено некорректно, повторите попытку");
+            move(4, 0);
+            time_limit_input = handle_string_input(4);
         }
     }
 
-    mvprintw(margin_1 + 3, 0, "######//~~~~~~//######");
-    mvprintw(margin_1 + 5, 0, "Ограничение по времени: ");
-    mvprintw(margin_1 + 5, 24, time_limit_input.c_str());
-    mvprintw(margin_1 + 5, 25 + time_limit_input.length(), "часов");
-    mvprintw(margin_1 + 7, 0, "######//~~~~~~//######");
+    move(3, 0);
+    clrtoeol();
+    move(4, 0);
+    clrtoeol();
 
-    move(margin_1 + 9, 0);
+    attron(COLOR_PAIR(3));
+    mvprintw(3, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
+    mvprintw(5, 0, "Ограничение по времени: ");
+    attron(COLOR_PAIR(2));
+    mvprintw(5, 25, time_limit_input.c_str());
+    mvprintw(5, 26 + time_limit_input.length(), "часов");
+    attroff(COLOR_PAIR(2));
+    attron(COLOR_PAIR(3));
+    mvprintw(7, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
+
+    move(9, 0);
+
+    wait_for_enter(9);
 
     return time_limit;
 }
@@ -581,8 +625,7 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
             if (valid_transport_id_list.empty())
             {
                 mvprintw(2, 0, "Ограничений на транспорт нет");
-                mvprintw(4, 0, "Нажмите ENTER чтобы продолжить");
-                move(5, 0);
+                wait_for_enter(4);
             }
             else
             {
@@ -605,18 +648,10 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
                 move(8, 0);
 
                 mvprintw(8, 0, "######//~~~~~~//######");
-                mvprintw(10, 0, "Нажмите ENTER чтобы продолжить");
-                move(11, 0);
+                wait_for_enter(10);
             }
             input_is_valid = true;
         }
-    }
-
-    // refresh();
-
-    char c;
-    while ((c = getch()) != 10)
-    {
     }
 
     return valid_transport_id_list;
@@ -650,24 +685,23 @@ int main()
     int x_max, y_max;
     getmaxyx(stdscr, y_max, x_max);
 
-    WINDOW *w = newwin(0, 0, 0, 0);
-
-    scrollok(w, true);
+    // scrollok(stdscr, true);
     start_color();
 
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(2, 10, COLOR_BLACK);
     init_pair(3, 13, COLOR_BLACK);
     init_pair(4, 15, COLOR_BLACK);
+    init_pair(5, COLOR_RED, COLOR_BLACK);
 
-    keypad(w, true);
+    keypad(stdscr, true);
 
     bool proccess_in_interaction = true;
 
     while (proccess_in_interaction)
     {
 
-        const auto result = handle_mode_input(w);
+        const auto result = handle_mode_input();
 
         clear();
         refresh();
@@ -768,6 +802,10 @@ int main()
             }
             // refresh();
         }
+        else
+        {
+            break;
+        }
 
         char c;
 
@@ -779,7 +817,7 @@ int main()
         clear();
         refresh();
 
-        const auto chosen_mode = handle_finish_app(w);
+        const auto chosen_mode = handle_finish_app();
         if (chosen_mode == 0)
         {
             proccess_in_interaction = false;

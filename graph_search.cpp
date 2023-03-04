@@ -35,7 +35,7 @@ namespace msu_tasks_cpp
 
         vector<Path> pathes_to_all_cities(cities_count);
 
-        set<pair<unsigned int, CityId>> current_city_ids;
+        set<pair<unsigned long, CityId>> current_city_ids;
         current_city_ids.insert(make_pair(distancies_to_cities[start_city_id], start_city_id));
 
         while (!current_city_ids.empty())
@@ -93,7 +93,7 @@ namespace msu_tasks_cpp
 
         vector<Path> pathes_to_all_cities(cities_count);
 
-        set<pair<unsigned int, CityId>> current_city_ids;
+        set<pair<unsigned long, CityId>> current_city_ids;
         current_city_ids.insert(make_pair(distancies_to_cities[start_city_id], start_city_id));
 
         while (!current_city_ids.empty())
@@ -134,7 +134,7 @@ namespace msu_tasks_cpp
 
         vector<Path> pathes_to_all_cities(cities_count);
 
-        set<pair<unsigned int, CityId>> current_city_ids;
+        set<pair<unsigned long, CityId>> current_city_ids;
         current_city_ids.insert(make_pair(distancies_to_cities[start_city_id], start_city_id));
 
         while (!current_city_ids.empty())
@@ -174,7 +174,7 @@ namespace msu_tasks_cpp
 
         vector<Path> pathes_to_all_cities(cities_count);
 
-        set<pair<unsigned int, CityId>> current_city_ids;
+        set<pair<unsigned long, CityId>> current_city_ids;
         current_city_ids.insert(make_pair(distancies_to_cities[start_city_id], start_city_id));
 
         while (!current_city_ids.empty())
@@ -227,7 +227,7 @@ namespace msu_tasks_cpp
 
         vector<Path> pathes_to_all_cities(cities_count);
 
-        set<pair<unsigned int, CityId>> current_city_ids;
+        set<pair<unsigned long, CityId>> current_city_ids;
         current_city_ids.insert(make_pair(distancies_to_cities[start_city_id], start_city_id));
 
         while (!current_city_ids.empty())
