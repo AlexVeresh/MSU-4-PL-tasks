@@ -356,10 +356,16 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
         }
     }
 
+    attron(COLOR_PAIR(3));
     mvprintw(margin_1 + 3, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
     mvprintw(margin_1 + 5, 0, "Ваш город отправления: ");
+    attron(COLOR_PAIR(2));
     mvprintw(margin_1 + 5, 23, city_from.c_str());
+    attroff(COLOR_PAIR(2));
+    attron(COLOR_PAIR(3));
     mvprintw(margin_1 + 7, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
 
     move(margin_1 + 9, 0);
 
@@ -386,10 +392,16 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
         }
     }
 
+    attron(COLOR_PAIR(3));
     mvprintw(margin_1 + margin_2 + 12, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
     mvprintw(margin_1 + margin_2 + 14, 0, "Ваш город прибытия: ");
+    attron(COLOR_PAIR(2));
     mvprintw(margin_1 + margin_2 + 14, 20, city_to.c_str());
+    attroff(COLOR_PAIR(2));
+    attron(COLOR_PAIR(3));
     mvprintw(margin_1 + margin_2 + 16, 0, "######//~~~~~~//######");
+    attroff(COLOR_PAIR(3));
 
     move(margin_1 + margin_2 + 17, 0);
 
@@ -813,6 +825,7 @@ int main()
         {
             // break;
         }
+        //wait_for_enter();
 
         clear();
         refresh();
