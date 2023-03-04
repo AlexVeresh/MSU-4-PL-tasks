@@ -738,7 +738,9 @@ int main()
                     const auto path_string = logger.path_to_string(path);
 
                     printw("Искомый путь: ");
+                    attron(COLOR_PAIR(4));
                     mvprintw(2, 0, path_string.c_str());
+                    attroff(COLOR_PAIR(4));
                     break;
                 }
                 case 1:
@@ -747,7 +749,9 @@ int main()
                     const auto path_string = logger.path_to_string(path);
 
                     printw("Искомый путь: ");
+                    attron(COLOR_PAIR(4));
                     mvprintw(2, 0, path_string.c_str());
+                    attroff(COLOR_PAIR(4));
                     break;
                 }
                 case 2:
@@ -756,7 +760,9 @@ int main()
                     const auto path_string = logger.path_to_string(path);
 
                     printw("Искомый путь: ");
+                    attron(COLOR_PAIR(4));
                     mvprintw(2, 0, path_string.c_str());
+                    attroff(COLOR_PAIR(4));
                     break;
                 }
                 default:
@@ -793,7 +799,9 @@ int main()
                     printw("Искомые пути: ");
 
                     const auto paths_to_cities_string = logger.paths_to_cities_to_string(paths_to_cities);
+                    attron(COLOR_PAIR(4));
                     mvprintw(2, 0, paths_to_cities_string.c_str());
+                    attroff(COLOR_PAIR(4));
 
                     break;
                 }
@@ -804,7 +812,9 @@ int main()
                     printw("Искомые пути: ");
 
                     const auto paths_to_cities_string = logger.paths_to_cities_to_string(paths_to_cities);
+                    attron(COLOR_PAIR(4));
                     mvprintw(2, 0, paths_to_cities_string.c_str());
+                    attroff(COLOR_PAIR(4));
 
                     break;
                 }
@@ -825,7 +835,7 @@ int main()
         {
             // break;
         }
-        //wait_for_enter();
+        // wait_for_enter();
 
         clear();
         refresh();
