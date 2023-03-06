@@ -1,6 +1,7 @@
 #include <set>
 #include <vector>
 #include <iostream>
+#include <limits>
 #include "graph.hpp"
 #include "graph_search.hpp"
 #include "logger.hpp"

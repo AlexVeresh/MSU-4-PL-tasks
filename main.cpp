@@ -21,6 +21,20 @@ using City = msu_tasks_cpp::Graph::City;
 using TransportId = msu_tasks_cpp::Graph::TransportId;
 using Transport = msu_tasks_cpp::Graph::Transport;
 
+string format_string(const string &input)
+{
+
+    string result = "";
+    for (const auto &c : input)
+    {
+        if (c != '"')
+        {
+            result += c;
+        }
+    }
+    return result;
+}
+
 void wait_for_enter(int start)
 {
 
@@ -105,7 +119,9 @@ void handle_file_input(Graph &graph)
                     item = cityPart + ' ' + item;
                     cityPart = "";
                 }
-                item.erase(remove(item.begin(), item.end(), '"'), item.end());
+                // const auto arr = item.c_str();
+                // item.erase(remove(arr.begin(), arr.end(), '"'), arr.end());
+                item = format_string(item);
 
                 switch (iter)
                 {
@@ -677,7 +693,10 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
 //     handle_file_input(graph);
 //     const auto graphSearch = GraphSearch(graph, {});
 //     const auto path = graphSearch.find_min_by_fare_among_shortest_path(0, 1);
-//     cout << logger.path_to_string(path) << endl;
+//     for (const auto& [key, city]: graph.get_cities()) {
+//         cout << city.title << endl;
+//     }
+//     //cout << logger.path_to_string(path) << endl;
 
 // } // test
 
