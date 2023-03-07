@@ -121,7 +121,7 @@ void handle_file_input(Graph &graph)
 {
     string result;
 
-    ifstream input("big_data.txt");
+    ifstream input("input.txt");
 
     while (getline(input, result))
     {
