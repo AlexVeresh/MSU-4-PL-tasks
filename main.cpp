@@ -117,11 +117,11 @@ int validate_transport_input(const unordered_map<TransportId, Transport> &transp
     return -1;
 }
 
-void handle_file_input(Graph &graph)
+void handle_file_input(Graph &graph, const char *filename)
 {
     string result;
 
-    ifstream input("input.txt");
+    ifstream input(filename);
 
     while (getline(input, result))
     {
@@ -709,7 +709,7 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
 
 // } // test
 
-int main()
+int main(int argc, char **argv)
 {
     float total_time;
     // long long total_memory;
@@ -718,7 +718,15 @@ int main()
 
     auto graph = Graph();
     auto logger = Logger(graph);
-    handle_file_input(graph);
+    
+    if (argc < 2)
+    {
+        handle_file_input(graph, "input.txt");
+    }
+    else
+    {
+        handle_file_input(graph, argv[1]);
+    }
 
     initscr();
     cbreak();
