@@ -5,7 +5,10 @@
 #include <string>
 #include <set>
 #include <ncurses.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <locale>
+#include <chrono>
 #include "graph.hpp"
 #include "graph_search.hpp"
 #include "logger.hpp"
@@ -20,6 +23,35 @@ using CityId = msu_tasks_cpp::Graph::CityId;
 using City = msu_tasks_cpp::Graph::City;
 using TransportId = msu_tasks_cpp::Graph::TransportId;
 using Transport = msu_tasks_cpp::Graph::Transport;
+
+void log_time_and_memory_usage(float estimated_time)
+{
+    struct rusage usage;
+    ofstream myfile("logs.txt");
+    string line;
+    if (myfile.is_open())
+    {
+        myfile << "Время выполнения алгоритма поиска: " << estimated_time << " секунд";
+        if (0 == getrusage(RUSAGE_SELF, &usage))
+        {
+            myfile << '\n'
+                   << "Памяти использовано: " << usage.ru_maxrss << endl;
+        }
+        else
+        {
+            myfile << '\n'
+                   << "Памяти использовано: " << usage.ru_maxrss << endl;
+        }
+        myfile.close();
+    }
+}
+
+float estimate_time(const std::chrono::steady_clock::time_point &start_time)
+{
+    const auto end_time = std::chrono::high_resolution_clock::now();
+    const auto time = end_time - start_time;
+    return std::chrono::duration<float>(time).count();
+}
 
 string format_string(const string &input)
 {
@@ -89,7 +121,7 @@ void handle_file_input(Graph &graph)
 {
     string result;
 
-    ifstream input("input_large.txt");
+    ifstream input("big_data.txt");
 
     while (getline(input, result))
     {
@@ -313,36 +345,13 @@ int handle_finish_app()
     return chosen_mode;
 }
 
-string handle_string_input(int row)
+string handle_string_input()
 {
-    int c;
-    string str = "";
-    int i = 0;
-    while ((c = getch()) != 10)
-    {
-        if (c != -1)
-        {
-            if (c == 127)
-            {
-                clrtoeol();
-
-                if (i > 0)
-                {
-                    str.pop_back();
-                    i--;
-                    move(row, i);
-                }
-            }
-            else
-            {
-                attron(COLOR_PAIR(4));
-                printw("%c", c);
-                attroff(COLOR_PAIR(4));
-                str.push_back(char(c));
-                i++;
-            }
-        }
-    }
+    char input[200];
+    attron(COLOR_PAIR(4));
+    getnstr(input, 200);
+    attroff(COLOR_PAIR(4));
+    std::string str(input);
     return str;
 }
 
@@ -357,7 +366,7 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
 
     string city_from;
     int city_from_id = -1;
-    city_from = handle_string_input(1);
+    city_from = handle_string_input();
 
     int margin_1 = 0;
     while (city_from_id == -1)
@@ -367,7 +376,7 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
         {
             mvprintw(3 + margin_1, 0, "Введите корректный город отправления");
             move(4 + margin_1, 0);
-            city_from = handle_string_input(4 + margin_1);
+            city_from = handle_string_input();
             margin_1 += 2;
         }
     }
@@ -393,7 +402,7 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
 
     string city_to;
     int city_to_id = -1;
-    city_to = handle_string_input(margin_1 + 10);
+    city_to = handle_string_input();
 
     int margin_2 = 0;
     while (city_to_id == -1)
@@ -403,7 +412,7 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
         {
             mvprintw(12 + margin_1 + margin_2, 0, "Введите корректный город прибытия");
             move(13 + margin_1 + margin_2, 0);
-            city_to = handle_string_input(13 + margin_1 + margin_2);
+            city_to = handle_string_input();
             margin_2 += 2;
         }
     }
@@ -435,7 +444,7 @@ CityId handle_single_city_input(Graph &graph)
 
     string city_from;
     int city_from_id = -1;
-    city_from = handle_string_input(1);
+    city_from = handle_string_input();
 
     while (city_from_id == -1)
     {
@@ -448,7 +457,7 @@ CityId handle_single_city_input(Graph &graph)
             clrtoeol();
             mvprintw(3, 0, "Введите корректный город отправления");
             move(4, 0);
-            city_from = handle_string_input(4);
+            city_from = handle_string_input();
         }
     }
 
@@ -486,7 +495,7 @@ long handle_cost_limit_input()
 
     string cost_limit_input;
     long cost_limit = -1;
-    cost_limit_input = handle_string_input(1);
+    cost_limit_input = handle_string_input();
 
     while (cost_limit == -1)
     {
@@ -499,7 +508,7 @@ long handle_cost_limit_input()
             clrtoeol();
             mvprintw(3, 0, "Число отрицательно или введено некорректно, повторите попытку");
             move(4, 0);
-            cost_limit_input = handle_string_input(4);
+            cost_limit_input = handle_string_input();
         }
     }
 
@@ -538,7 +547,7 @@ long handle_time_limit_input()
 
     string time_limit_input;
     long time_limit = -1;
-    time_limit_input = handle_string_input(1);
+    time_limit_input = handle_string_input();
 
     while (time_limit == -1)
     {
@@ -551,7 +560,7 @@ long handle_time_limit_input()
             clrtoeol();
             mvprintw(3, 0, "Число отрицательно или введено некорректно, повторите попытку");
             move(4, 0);
-            time_limit_input = handle_string_input(4);
+            time_limit_input = handle_string_input();
         }
     }
 
@@ -600,7 +609,7 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
         valid_transport_id_list.clear();
         string current_transport;
 
-        string transport_list_str = handle_string_input(row_number + 1);
+        string transport_list_str = handle_string_input();
         for (const auto &c : transport_list_str)
         {
             if (c == '/')
@@ -702,6 +711,9 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
 
 int main()
 {
+    float total_time;
+    // long long total_memory;
+
     setlocale(LC_ALL, "ru_RU.UTF-8");
 
     auto graph = Graph();
@@ -709,7 +721,6 @@ int main()
     handle_file_input(graph);
 
     initscr();
-    noecho();
     cbreak();
     halfdelay(5);
 
@@ -753,7 +764,10 @@ int main()
                 {
                 case 0:
                 {
+                    const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto path = graphSearch.find_min_by_fare_among_shortest_path(city_pair.first, city_pair.second);
+                    total_time = estimate_time(start_time);
+
                     const auto path_string = logger.path_to_string(path);
 
                     printw("Искомый путь: ");
@@ -764,7 +778,10 @@ int main()
                 }
                 case 1:
                 {
+                    const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto path = graphSearch.find_min_by_fare_path(city_pair.first, city_pair.second);
+                    total_time = estimate_time(start_time);
+
                     const auto path_string = logger.path_to_string(path);
 
                     printw("Искомый путь: ");
@@ -775,7 +792,10 @@ int main()
                 }
                 case 2:
                 {
+                    const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto path = graphSearch.find_min_by_cities_path(city_pair.first, city_pair.second);
+                    total_time = estimate_time(start_time);
+
                     const auto path_string = logger.path_to_string(path);
 
                     printw("Искомый путь: ");
@@ -813,10 +833,11 @@ int main()
                 {
                 case 3:
                 {
+                    const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto paths_to_cities = graphSearch.find_cities_in_limit_cost(city_from_id, limit);
+                    total_time = estimate_time(start_time);
 
                     printw("Искомые пути: ");
-
                     const auto paths_to_cities_string = logger.paths_to_cities_to_string(paths_to_cities);
                     attron(COLOR_PAIR(4));
                     mvprintw(2, 0, paths_to_cities_string.c_str());
@@ -826,10 +847,11 @@ int main()
                 }
                 case 4:
                 {
+                    const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto paths_to_cities = graphSearch.find_cities_in_limit_time(city_from_id, limit);
+                    total_time = estimate_time(start_time);
 
                     printw("Искомые пути: ");
-
                     const auto paths_to_cities_string = logger.paths_to_cities_to_string(paths_to_cities);
                     attron(COLOR_PAIR(4));
                     mvprintw(2, 0, paths_to_cities_string.c_str());
@@ -867,4 +889,6 @@ int main()
     }
     // curs_set(0);
     endwin();
+
+    log_time_and_memory_usage(total_time);
 }
