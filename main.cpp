@@ -46,10 +46,10 @@ void log_time_and_memory_usage(float estimated_time)
     }
 }
 
-float estimate_time(const std::chrono::steady_clock::time_point &start_time)
+float estimate_time(const std::chrono::steady_clock::duration &start_time_duration)
 {
     const auto end_time = std::chrono::high_resolution_clock::now();
-    const auto time = end_time - start_time;
+    const auto time = end_time.time_since_epoch() - start_time_duration;
     return std::chrono::duration<float>(time).count();
 }
 
@@ -718,7 +718,7 @@ int main(int argc, char **argv)
 
     auto graph = Graph();
     auto logger = Logger(graph);
-    
+
     if (argc < 2)
     {
         handle_file_input(graph, "input.txt");
@@ -774,7 +774,7 @@ int main(int argc, char **argv)
                 {
                     const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto path = graphSearch.find_min_by_fare_among_shortest_path(city_pair.first, city_pair.second);
-                    total_time = estimate_time(start_time);
+                    total_time = estimate_time(start_time.time_since_epoch());
 
                     const auto path_string = logger.path_to_string(path);
 
@@ -788,7 +788,7 @@ int main(int argc, char **argv)
                 {
                     const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto path = graphSearch.find_min_by_fare_path(city_pair.first, city_pair.second);
-                    total_time = estimate_time(start_time);
+                    total_time = estimate_time(start_time.time_since_epoch());
 
                     const auto path_string = logger.path_to_string(path);
 
@@ -802,7 +802,7 @@ int main(int argc, char **argv)
                 {
                     const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto path = graphSearch.find_min_by_cities_path(city_pair.first, city_pair.second);
-                    total_time = estimate_time(start_time);
+                    total_time = estimate_time(start_time.time_since_epoch());
 
                     const auto path_string = logger.path_to_string(path);
 
@@ -843,7 +843,7 @@ int main(int argc, char **argv)
                 {
                     const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto paths_to_cities = graphSearch.find_cities_in_limit_cost(city_from_id, limit);
-                    total_time = estimate_time(start_time);
+                    total_time = estimate_time(start_time.time_since_epoch());
 
                     printw("Искомые пути: ");
                     const auto paths_to_cities_string = logger.paths_to_cities_to_string(paths_to_cities);
@@ -857,7 +857,7 @@ int main(int argc, char **argv)
                 {
                     const auto start_time = std::chrono::high_resolution_clock::now();
                     const auto paths_to_cities = graphSearch.find_cities_in_limit_time(city_from_id, limit);
-                    total_time = estimate_time(start_time);
+                    total_time = estimate_time(start_time.time_since_epoch());
 
                     printw("Искомые пути: ");
                     const auto paths_to_cities_string = logger.paths_to_cities_to_string(paths_to_cities);
