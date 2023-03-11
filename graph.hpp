@@ -43,38 +43,56 @@ namespace msu_tasks_cpp
         struct Cruise
         {
 
-            const CruiseId id;
+            CruiseId id;
             const CityId from_city_id;
             const CityId to_city_id;
             const TransportId transport_type_id;
             const unsigned int time;
             const unsigned int fare;
 
-            Cruise(const CruiseId &_id,
-                   const CityId &_from_city_id,
+            Cruise(const CityId &_from_city_id,
                    const CityId &_to_city_id,
                    const TransportId &_transport_type_id,
                    const unsigned int &_time,
-                   const unsigned int &_fare) : id(_id), from_city_id(_from_city_id), to_city_id(_to_city_id), transport_type_id(_transport_type_id), time(_time), fare(_fare) {}
+                   const unsigned int &_fare) : id(0),
+                                                from_city_id(_from_city_id),
+                                                to_city_id(_to_city_id),
+                                                transport_type_id(_transport_type_id),
+                                                time(_time),
+                                                fare(_fare) {}
         };
 
         CityId add_city(const std::string &title);
 
-        void add_cruise(const CityId &from_city_id, const CityId &to_city_id, const std::string &transport_title, const unsigned int &time, const unsigned int &fare);
+        void add_cruise(Cruise &cruise);
 
-        const std::vector<CruiseId> &get_city_cruises(const CityId &city_id) const { return cities_.at(city_id).get_cruises_ids(); }
+        Graph::TransportId add_transport(const std::string &title);
+
+        const std::vector<CruiseId> &get_city_cruises(const CityId &city_id) const
+        {
+            return cities_.at(city_id).get_cruises_ids();
+        }
 
         const Cruise &get_cruise(const CruiseId &id) const { return cruises_.at(id); }
 
-        const Transport &get_transport(const TransportId &id) const { return transports_.at(id); }
+        const Transport &get_transport(const TransportId &id) const
+        {
+            return transports_.at(id);
+        }
 
         City &get_city(const CityId &id) { return cities_.at(id); }
 
         const std::unordered_map<CityId, City> &get_cities() const { return cities_; }
 
-        const std::unordered_map<CruiseId, Cruise> &get_cruises() const { return cruises_; }
+        const std::unordered_map<CruiseId, Cruise> &get_cruises() const
+        {
+            return cruises_;
+        }
 
-        const std::unordered_map<TransportId, Transport> &get_transports() const { return transports_; }
+        const std::unordered_map<TransportId, Transport> &get_transports() const
+        {
+            return transports_;
+        }
 
         const int get_cities_amount() const { return cities_.size(); }
 

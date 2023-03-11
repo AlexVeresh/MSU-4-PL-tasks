@@ -30,13 +30,12 @@ namespace msu_tasks_cpp
         return city_id;
     }
 
-    void Graph::add_cruise(const CityId &from_city_id, const CityId &to_city_id, const string &transport_title, const unsigned int &time, const unsigned int &fare)
+    Graph::TransportId Graph::add_transport(const std::string &title)
     {
-        const CruiseId new_cruise_id = get_new_cruise_id();
         TransportId transport_id = -1;
         for (const auto &[key, value] : transports_)
         {
-            if (value.title == transport_title)
+            if (value.title == title)
             {
                 transport_id = key;
                 break;
@@ -46,9 +45,16 @@ namespace msu_tasks_cpp
         if (transport_id == -1)
         {
             transport_id = get_new_transport_id();
-            transports_.emplace(transport_id, Transport(transport_id, transport_title));
+            transports_.emplace(transport_id, Transport(transport_id, title));
         }
-        cruises_.emplace(new_cruise_id, Cruise(new_cruise_id, from_city_id, to_city_id, transport_id, time, fare));
-        get_city(from_city_id).add_cruise_id(new_cruise_id);
+        return transport_id;
+    }
+
+    void Graph::add_cruise(Cruise &cruise)
+    {
+        const CruiseId new_cruise_id = get_new_cruise_id();
+        cruise.id = new_cruise_id;
+        cruises_.emplace(new_cruise_id, cruise);
+        get_city(cruise.from_city_id).add_cruise_id(new_cruise_id);
     }
 }

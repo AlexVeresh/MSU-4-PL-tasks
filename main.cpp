@@ -132,7 +132,7 @@ void handle_file_input(Graph &graph, const char *filename)
 
         Graph::CityId from_city_id;
         Graph::CityId to_city_id;
-        string transport_title;
+        Graph::TransportId transport_id;
         unsigned int time;
         unsigned int fare;
 
@@ -164,14 +164,15 @@ void handle_file_input(Graph &graph, const char *filename)
                     to_city_id = graph.add_city(item);
                     break;
                 case 2:
-                    transport_title = item;
+                    transport_id = graph.add_transport(item);
                     break;
                 case 3:
                     time = stoi(item);
                     break;
                 case 4:
                     fare = stoi(item);
-                    graph.add_cruise(from_city_id, to_city_id, transport_title, time, fare);
+                    auto new_cruise = Graph::Cruise(from_city_id, to_city_id, transport_id, time, fare);
+                    graph.add_cruise(new_cruise);
                     break;
                 }
                 iter++;
