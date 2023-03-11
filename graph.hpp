@@ -60,6 +60,8 @@ namespace msu_tasks_cpp
                                                 transport_type_id(_transport_type_id),
                                                 time(_time),
                                                 fare(_fare) {}
+
+            const std::string to_string(const Graph& graph) const;                                    
         };
 
         CityId add_city(const std::string &title);

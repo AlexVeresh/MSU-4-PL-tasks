@@ -57,4 +57,13 @@ namespace msu_tasks_cpp
         cruises_.emplace(new_cruise_id, cruise);
         get_city(cruise.from_city_id).add_cruise_id(new_cruise_id);
     }
+
+    const std::string Graph::Cruise::to_string(const Graph &graph) const
+    {
+
+        const auto city_from = graph.get_cities().at(from_city_id);
+        const auto city_to = graph.get_cities().at(to_city_id);
+
+        return city_from.title + " ---" + "(time: " + std::to_string(time) + ", fare: " + std::to_string(fare) + ")" + "---> " + city_to.title;
+    };
 }

@@ -24,6 +24,18 @@ using City = msu_tasks_cpp::Graph::City;
 using TransportId = msu_tasks_cpp::Graph::TransportId;
 using Transport = msu_tasks_cpp::Graph::Transport;
 
+void log_path_to_file(const string &path_str)
+{
+    struct rusage usage;
+    ofstream myfile("paths.txt");
+    string line;
+    if (myfile.is_open())
+    {
+        myfile << path_str;
+        myfile.close();
+    }
+}
+
 void log_time_and_memory_usage(float estimated_time)
 {
     struct rusage usage;
@@ -641,14 +653,15 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
 
             mvprintw(4, 0, "Транспорт введен некорректно или не найден");
 
-            int padding = 0;
+            string invalid_input;
             for (const auto &item : invalid_transport_title_list)
             {
-                mvprintw(6, padding, item.c_str());
-                padding += item.length();
-                mvprintw(6, padding + 1, " ");
-                padding += 2;
+                invalid_input += item + " ";
             }
+
+            attron(COLOR_PAIR(4));
+            mvprintw(6, 0, invalid_input.c_str());
+            attroff(COLOR_PAIR(4));
 
             mvprintw(8, 0, "Введите список снова");
             row_number = 8;
@@ -667,17 +680,20 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
             }
             else
             {
+                attron(COLOR_PAIR(3));
                 mvprintw(3, 0, "######//~~~~~~//######");
+                attroff(COLOR_PAIR(3));
                 mvprintw(4, 0, "Следующий транспорт ограничен");
 
-                int padding = 0;
+                string valid_input;
                 for (const auto &transport_id : valid_transport_id_list)
                 {
-                    mvprintw(6, padding, graph.get_transport(transport_id).title.c_str());
-                    padding += graph.get_transport(transport_id).title.length();
-                    mvprintw(6, padding + 1, " ");
-                    padding += 2;
+                    valid_input += graph.get_transport(transport_id).title + " ";
                 }
+
+                attron(COLOR_PAIR(5));
+                mvprintw(6, 0, valid_input.c_str());
+                attroff(COLOR_PAIR(5));
 
                 move(8, 0);
                 clrtoeol();
@@ -685,7 +701,9 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
                 clrtoeol();
                 move(8, 0);
 
+                attron(COLOR_PAIR(3));
                 mvprintw(8, 0, "######//~~~~~~//######");
+                attroff(COLOR_PAIR(3));
                 wait_for_enter(10);
             }
             input_is_valid = true;
@@ -783,6 +801,9 @@ int main(int argc, char **argv)
                     attron(COLOR_PAIR(4));
                     mvprintw(2, 0, path_string.c_str());
                     attroff(COLOR_PAIR(4));
+
+                    log_path_to_file(path_string);
+
                     break;
                 }
                 case 1:
@@ -797,6 +818,9 @@ int main(int argc, char **argv)
                     attron(COLOR_PAIR(4));
                     mvprintw(2, 0, path_string.c_str());
                     attroff(COLOR_PAIR(4));
+
+                    log_path_to_file(path_string);
+
                     break;
                 }
                 case 2:
@@ -811,6 +835,9 @@ int main(int argc, char **argv)
                     attron(COLOR_PAIR(4));
                     mvprintw(2, 0, path_string.c_str());
                     attroff(COLOR_PAIR(4));
+
+                    log_path_to_file(path_string);
+
                     break;
                 }
                 default:
@@ -852,6 +879,8 @@ int main(int argc, char **argv)
                     mvprintw(2, 0, paths_to_cities_string.c_str());
                     attroff(COLOR_PAIR(4));
 
+                    log_path_to_file(paths_to_cities_string);
+
                     break;
                 }
                 case 4:
@@ -865,6 +894,8 @@ int main(int argc, char **argv)
                     attron(COLOR_PAIR(4));
                     mvprintw(2, 0, paths_to_cities_string.c_str());
                     attroff(COLOR_PAIR(4));
+
+                    log_path_to_file(paths_to_cities_string);
 
                     break;
                 }
