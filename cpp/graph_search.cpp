@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <limits>
+#include <queue>
 #include "graph.hpp"
 #include "graph_search.hpp"
 #include "logger.hpp"
@@ -11,6 +12,7 @@ namespace msu_tasks_cpp
 
     using std::make_pair;
     using std::pair;
+    using std::queue;
     using std::set;
     using std::unordered_map;
     using std::vector;
@@ -135,29 +137,53 @@ namespace msu_tasks_cpp
 
         vector<Path> pathes_to_all_cities(cities_count);
 
-        set<pair<unsigned long, CityId>> current_city_ids;
-        current_city_ids.insert(make_pair(distancies_to_cities[start_city_id], start_city_id));
+        // set<pair<unsigned long, CityId>> current_city_ids;
+        // current_city_ids.insert(make_pair(distancies_to_cities[start_city_id], start_city_id));
+
+        queue<CityId> current_city_ids;
+        current_city_ids.push(start_city_id);
+        vector<bool> used(cities_count);
+        used[start_city_id] = true;
 
         while (!current_city_ids.empty())
         {
-            const auto from_city_id = current_city_ids.begin()->second;
-            current_city_ids.erase(current_city_ids.begin());
-
+            const auto from_city_id = current_city_ids.front();
+            current_city_ids.pop();
             for (const auto &cruise_id : graph_.get_cities().at(from_city_id).get_cruises_ids())
             {
                 const auto to_city_id = graph_.get_cruise(cruise_id).to_city_id;
                 const auto transport_type_id = graph_.get_cruise(cruise_id).transport_type_id;
 
-                if (distancies_to_cities[from_city_id] + 1 < distancies_to_cities[to_city_id] &&
-                    is_transport_valid(transport_type_id))
+                if (!used[to_city_id] && is_transport_valid(transport_type_id))
                 {
-                    current_city_ids.erase(make_pair(distancies_to_cities[to_city_id], to_city_id));
+                    used[to_city_id] = true;
+                    current_city_ids.push(to_city_id);
                     distancies_to_cities[to_city_id] = distancies_to_cities[from_city_id] + 1;
                     pathes_to_all_cities[to_city_id] = pathes_to_all_cities[from_city_id] + graph_.get_cruise(cruise_id);
-                    current_city_ids.insert(make_pair(distancies_to_cities[to_city_id], to_city_id));
                 }
             }
         }
+
+        // while (!current_city_ids.empty())
+        // {
+        //     const auto from_city_id = current_city_ids.begin()->second;
+        //     current_city_ids.erase(current_city_ids.begin());
+
+        //     for (const auto &cruise_id : graph_.get_cities().at(from_city_id).get_cruises_ids())
+        //     {
+        //         const auto to_city_id = graph_.get_cruise(cruise_id).to_city_id;
+        //         const auto transport_type_id = graph_.get_cruise(cruise_id).transport_type_id;
+
+        //         if (distancies_to_cities[from_city_id] + 1 < distancies_to_cities[to_city_id] &&
+        //             is_transport_valid(transport_type_id))
+        //         {
+        //             current_city_ids.erase(make_pair(distancies_to_cities[to_city_id], to_city_id));
+        //             distancies_to_cities[to_city_id] = distancies_to_cities[from_city_id] + 1;
+        //             pathes_to_all_cities[to_city_id] = pathes_to_all_cities[from_city_id] + graph_.get_cruise(cruise_id);
+        //             current_city_ids.insert(make_pair(distancies_to_cities[to_city_id], to_city_id));
+        //         }
+        //     }
+        // }
 
         return pathes_to_all_cities[finish_city_id];
     }

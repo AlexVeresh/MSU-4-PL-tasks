@@ -9,6 +9,8 @@
 #include <sys/resource.h>
 #include <locale>
 #include <chrono>
+#include <iomanip>
+#include <ctime>
 #include "graph.hpp"
 #include "graph_search.hpp"
 #include "logger.hpp"
@@ -24,25 +26,91 @@ using City = msu_tasks_cpp::Graph::City;
 using TransportId = msu_tasks_cpp::Graph::TransportId;
 using Transport = msu_tasks_cpp::Graph::Transport;
 
-void log_path_to_file(const string &path_str)
+#define ctrl(x) (x & 0x1F)
+
+const string EXIT_APP = "EXIT_APP";
+
+string dash_divider()
 {
-    struct rusage usage;
-    ofstream myfile("paths.txt");
-    string line;
-    if (myfile.is_open())
+    string result = "";
+    for (int i = 0; i < 30; i++)
     {
-        myfile << path_str;
-        myfile.close();
+        result += "— ";
+    }
+    return result;
+}
+
+string high_divider()
+{
+    string result = "";
+    for (int i = 0; i < 120; i++)
+    {
+        result += "•";
+    }
+    return result;
+}
+
+void clear_n_lines(int start, int end)
+{
+    for (int i = start; i <= end; i++)
+    {
+        move(i, 0);
+        clrtoeol();
     }
 }
 
-void log_time_and_memory_usage(float estimated_time)
+void log_paths_and_data(
+    const string mode_title,
+    const string &result,
+    float estimated_time,
+    const string city_from_title,
+    const string city_to_title)
 {
+    string previous_input = "";
+    string current_line = "";
+    fstream file;
+    file.open("../logs.txt");
+    while (getline(file, current_line))
+    {
+        previous_input += current_line + '\n';
+    }
+    file.close();
+
     struct rusage usage;
-    ofstream myfile("logs.txt");
+    ofstream myfile("../logs.txt");
     string line;
     if (myfile.is_open())
     {
+        if (previous_input.length() != 0)
+        {
+            myfile << previous_input;
+            myfile << "\n";
+            myfile << high_divider();
+            myfile << "\n";
+            myfile << high_divider();
+            myfile << "\n\n";
+        }
+
+        myfile << "Язык: C++\n";
+        const auto t = std::time(nullptr);
+        const auto tm = *std::localtime(&t);
+        myfile << "Дата: " << std::put_time(&tm, "%Y-%m-%d") << std::endl;
+        myfile << mode_title;
+
+        if (city_from_title.length() != 0)
+        {
+            myfile << "\n";
+            myfile << city_from_title;
+            myfile << "\n";
+            myfile << city_to_title;
+        }
+        myfile << "\n";
+        myfile << dash_divider();
+        myfile << "\n";
+        myfile << result;
+        myfile << "\n";
+        myfile << dash_divider();
+        myfile << "\n";
         myfile << "Время выполнения алгоритма поиска: " << estimated_time << " секунд";
         if (0 == getrusage(RUSAGE_SELF, &usage))
         {
@@ -52,7 +120,7 @@ void log_time_and_memory_usage(float estimated_time)
         else
         {
             myfile << '\n'
-                   << "Памяти использовано: " << usage.ru_maxrss << endl;
+                   << "Памяти использовано: " << '0' << endl;
         }
         myfile.close();
     }
@@ -311,14 +379,7 @@ int handle_finish_app()
             {
                 attron(A_REVERSE);
             }
-            if (i == 4)
-            {
-                mvprintw(i + 3, 0, modes[i].c_str());
-            }
-            else
-            {
-                mvprintw(i + 2, 0, modes[i].c_str());
-            }
+            mvprintw(i + 2, 0, modes[i].c_str());
             attroff(A_REVERSE);
         }
         user_choice = getch();
@@ -358,13 +419,67 @@ int handle_finish_app()
     return chosen_mode;
 }
 
-string handle_string_input()
+string handle_int_input()
 {
+    echo();
     char input[200];
     attron(COLOR_PAIR(4));
     getnstr(input, 200);
     attroff(COLOR_PAIR(4));
     std::string str(input);
+    noecho();
+    return str;
+}
+
+string handle_string_input(int row)
+{
+    int c;
+    string str = "";
+    string new_typed = "";
+    int i = 0;
+    bool backspace_tap_after_input = true;
+    while ((c = getch()) != 10)
+    {
+        if (c != -1)
+        {
+            if (c == 127 || c == KEY_BACKSPACE)
+            {
+                if (backspace_tap_after_input)
+                {
+                    i -= ((new_typed.length() / 2));
+                    backspace_tap_after_input = false;
+                    new_typed.clear();
+                }
+
+                if (i > 0)
+                {
+                    str.pop_back();
+                    str.pop_back();
+                    i -= 1;
+                    move(row, i);
+                }
+                else
+                {
+                    i = 0;
+                }
+                clrtoeol();
+            }
+            else if (c == ctrl(27))
+            {
+                return EXIT_APP;
+            }
+            else if (char(c) < '0')
+            {
+                backspace_tap_after_input = true;
+                attron(COLOR_PAIR(4));
+                printw("%c", c);
+                attroff(COLOR_PAIR(4));
+                str.push_back(char(c));
+                new_typed.push_back(char(c));
+                i++;
+            }
+        }
+    }
     return str;
 }
 
@@ -379,69 +494,83 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
 
     string city_from;
     int city_from_id = -1;
-    city_from = handle_string_input();
+    city_from = handle_string_input(1);
+    if (city_from == EXIT_APP)
+    {
+        return make_pair(-1, -1);
+    }
 
-    int margin_1 = 0;
     while (city_from_id == -1)
     {
         city_from_id = validate_city_input(graph.get_cities(), city_from);
         if (city_from_id == -1)
         {
-            mvprintw(3 + margin_1, 0, "Введите корректный город отправления");
-            move(4 + margin_1, 0);
-            city_from = handle_string_input();
-            margin_1 += 2;
+            clear_n_lines(3, 4);
+            mvprintw(3, 0, "Введите корректный город отправления");
+            move(4, 0);
+            city_from = handle_string_input(4);
+            if (city_from == EXIT_APP)
+            {
+                return make_pair(-1, -1);
+            }
         }
     }
 
+    clear_n_lines(0, 4);
+
     attron(COLOR_PAIR(3));
-    mvprintw(margin_1 + 3, 0, "######//~~~~~~//######");
+    mvprintw(0, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
-    mvprintw(margin_1 + 5, 0, "Ваш город отправления: ");
+    mvprintw(2, 0, "Ваш город отправления: ");
     attron(COLOR_PAIR(2));
-    mvprintw(margin_1 + 5, 23, city_from.c_str());
+    mvprintw(2, 23, city_from.c_str());
     attroff(COLOR_PAIR(2));
     attron(COLOR_PAIR(3));
-    mvprintw(margin_1 + 7, 0, "######//~~~~~~//######");
+    mvprintw(4, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
 
-    move(margin_1 + 9, 0);
+    move(6, 0);
 
     printw("Введите город прибытия");
 
-    move(margin_1 + 10, 0);
+    move(7, 0);
 
     refresh();
 
     string city_to;
     int city_to_id = -1;
-    city_to = handle_string_input();
+    city_to = handle_string_input(7);
 
-    int margin_2 = 0;
     while (city_to_id == -1)
     {
         city_to_id = validate_city_input(graph.get_cities(), city_to);
         if (city_to_id == -1)
         {
-            mvprintw(12 + margin_1 + margin_2, 0, "Введите корректный город прибытия");
-            move(13 + margin_1 + margin_2, 0);
-            city_to = handle_string_input();
-            margin_2 += 2;
+            clear_n_lines(9, 10);
+            mvprintw(9, 0, "Введите корректный город прибытия");
+            move(10, 0);
+            city_to = handle_string_input(9);
+            if (city_to == EXIT_APP)
+            {
+                return make_pair(-1, -1);
+            }
         }
     }
 
+    clear_n_lines(6, 10);
+
     attron(COLOR_PAIR(3));
-    mvprintw(margin_1 + margin_2 + 12, 0, "######//~~~~~~//######");
+    mvprintw(6, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
-    mvprintw(margin_1 + margin_2 + 14, 0, "Ваш город прибытия: ");
+    mvprintw(8, 0, "Ваш город прибытия: ");
     attron(COLOR_PAIR(2));
-    mvprintw(margin_1 + margin_2 + 14, 20, city_to.c_str());
+    mvprintw(8, 20, city_to.c_str());
     attroff(COLOR_PAIR(2));
     attron(COLOR_PAIR(3));
-    mvprintw(margin_1 + margin_2 + 16, 0, "######//~~~~~~//######");
+    mvprintw(10, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
 
-    move(margin_1 + margin_2 + 17, 0);
+    wait_for_enter(12);
 
     return make_pair(city_from_id, city_to_id);
 }
@@ -457,42 +586,38 @@ CityId handle_single_city_input(Graph &graph)
 
     string city_from;
     int city_from_id = -1;
-    city_from = handle_string_input();
+    city_from = handle_string_input(1);
 
     while (city_from_id == -1)
     {
         city_from_id = validate_city_input(graph.get_cities(), city_from);
         if (city_from_id == -1)
         {
-            move(3, 0);
-            clrtoeol();
-            move(4, 0);
-            clrtoeol();
+            clear_n_lines(3, 4);
             mvprintw(3, 0, "Введите корректный город отправления");
             move(4, 0);
-            city_from = handle_string_input();
+            city_from = handle_string_input(4);
+            if (city_from == EXIT_APP)
+            {
+                return -1;
+            }
         }
     }
 
-    move(3, 0);
-    clrtoeol();
-    move(4, 0);
-    clrtoeol();
+    clear_n_lines(0, 4);
 
     attron(COLOR_PAIR(3));
-    mvprintw(3, 0, "######//~~~~~~//######");
+    mvprintw(0, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
-    mvprintw(5, 0, "Ваш город отправления: ");
+    mvprintw(2, 0, "Ваш город отправления: ");
     attron(COLOR_PAIR(2));
-    mvprintw(5, 23, city_from.c_str());
+    mvprintw(2, 23, city_from.c_str());
     attroff(COLOR_PAIR(2));
     attron(COLOR_PAIR(3));
-    mvprintw(7, 0, "######//~~~~~~//######");
+    mvprintw(4, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
 
-    move(9, 0);
-
-    wait_for_enter(9);
+    wait_for_enter(6);
 
     return city_from_id;
 }
@@ -508,43 +633,39 @@ long handle_cost_limit_input()
 
     string cost_limit_input;
     long cost_limit = -1;
-    cost_limit_input = handle_string_input();
+    cost_limit_input = handle_int_input();
 
     while (cost_limit == -1)
     {
         cost_limit = validate_number_input(cost_limit_input);
         if (cost_limit == -1)
         {
-            move(3, 0);
-            clrtoeol();
-            move(4, 0);
-            clrtoeol();
+            clear_n_lines(3, 4);
             mvprintw(3, 0, "Число отрицательно или введено некорректно, повторите попытку");
             move(4, 0);
-            cost_limit_input = handle_string_input();
+            cost_limit_input = handle_int_input();
+            if (cost_limit_input == EXIT_APP)
+            {
+                return -1;
+            }
         }
     }
 
-    move(3, 0);
-    clrtoeol();
-    move(4, 0);
-    clrtoeol();
+    clear_n_lines(0, 4);
 
     attron(COLOR_PAIR(3));
-    mvprintw(3, 0, "######//~~~~~~//######");
+    mvprintw(0, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
-    mvprintw(5, 0, "Ограничение по стоимости: ");
+    mvprintw(2, 0, "Ограничение по стоимости: ");
     attron(COLOR_PAIR(2));
-    mvprintw(5, 25, cost_limit_input.c_str());
-    mvprintw(5, 26 + cost_limit_input.length(), "рублей");
+    mvprintw(2, 26, cost_limit_input.c_str());
+    mvprintw(2, 27 + cost_limit_input.length(), "рублей");
     attroff(COLOR_PAIR(2));
     attron(COLOR_PAIR(3));
-    mvprintw(7, 0, "######//~~~~~~//######");
+    mvprintw(4, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
 
-    move(9, 0);
-
-    wait_for_enter(9);
+    wait_for_enter(6);
 
     return cost_limit;
 }
@@ -560,43 +681,39 @@ long handle_time_limit_input()
 
     string time_limit_input;
     long time_limit = -1;
-    time_limit_input = handle_string_input();
+    time_limit_input = handle_int_input();
 
     while (time_limit == -1)
     {
         time_limit = validate_number_input(time_limit_input);
         if (time_limit == -1)
         {
-            move(3, 0);
-            clrtoeol();
-            move(4, 0);
-            clrtoeol();
+            clear_n_lines(3, 4);
             mvprintw(3, 0, "Число отрицательно или введено некорректно, повторите попытку");
             move(4, 0);
-            time_limit_input = handle_string_input();
+            time_limit_input = handle_int_input();
+            if (time_limit_input == EXIT_APP)
+            {
+                return -1;
+            }
         }
     }
 
-    move(3, 0);
-    clrtoeol();
-    move(4, 0);
-    clrtoeol();
+    clear_n_lines(0, 4);
 
     attron(COLOR_PAIR(3));
-    mvprintw(3, 0, "######//~~~~~~//######");
+    mvprintw(0, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
-    mvprintw(5, 0, "Ограничение по времени: ");
+    mvprintw(2, 0, "Ограничение по времени: ");
     attron(COLOR_PAIR(2));
-    mvprintw(5, 25, time_limit_input.c_str());
-    mvprintw(5, 26 + time_limit_input.length(), "часов");
+    mvprintw(2, 24, time_limit_input.c_str());
+    mvprintw(2, 25 + time_limit_input.length(), "у. е.");
     attroff(COLOR_PAIR(2));
     attron(COLOR_PAIR(3));
-    mvprintw(7, 0, "######//~~~~~~//######");
+    mvprintw(4, 0, "######//~~~~~~//######");
     attroff(COLOR_PAIR(3));
 
-    move(9, 0);
-
-    wait_for_enter(9);
+    wait_for_enter(6);
 
     return time_limit;
 }
@@ -622,7 +739,7 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
         valid_transport_id_list.clear();
         string current_transport;
 
-        string transport_list_str = handle_string_input();
+        string transport_list_str = handle_string_input(row_number + 1);
         for (const auto &c : transport_list_str)
         {
             if (c == '/')
@@ -668,22 +785,19 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
         }
         else
         {
-            move(4, 0);
-            clrtoeol();
-            move(6, 0);
-            clrtoeol();
+            clear_n_lines(0, 9);
 
             if (valid_transport_id_list.empty())
             {
-                mvprintw(2, 0, "Ограничений на транспорт нет");
-                wait_for_enter(4);
+                mvprintw(0, 0, "Ограничений на транспорт нет");
+                wait_for_enter(2);
             }
             else
             {
                 attron(COLOR_PAIR(3));
-                mvprintw(3, 0, "######//~~~~~~//######");
+                mvprintw(0, 0, "######//~~~~~~//######");
                 attroff(COLOR_PAIR(3));
-                mvprintw(4, 0, "Следующий транспорт ограничен");
+                mvprintw(2, 0, "Следующий транспорт ограничен");
 
                 string valid_input;
                 for (const auto &transport_id : valid_transport_id_list)
@@ -692,19 +806,12 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
                 }
 
                 attron(COLOR_PAIR(5));
-                mvprintw(6, 0, valid_input.c_str());
+                mvprintw(4, 0, valid_input.c_str());
                 attroff(COLOR_PAIR(5));
-
-                move(8, 0);
-                clrtoeol();
-                move(9, 0);
-                clrtoeol();
-                move(8, 0);
-
                 attron(COLOR_PAIR(3));
-                mvprintw(8, 0, "######//~~~~~~//######");
+                mvprintw(6, 0, "######//~~~~~~//######");
                 attroff(COLOR_PAIR(3));
-                wait_for_enter(10);
+                wait_for_enter(8);
             }
             input_is_valid = true;
         }
@@ -716,15 +823,17 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
 // int main()
 // {
 //     setlocale(LC_ALL, "ru_RU.UTF-8");
-//     auto graph = Graph();
-//     auto logger = Logger(graph);
-//     handle_file_input(graph);
-//     const auto graphSearch = GraphSearch(graph, {});
-//     const auto path = graphSearch.find_min_by_fare_among_shortest_path(0, 1);
-//     for (const auto& [key, city]: graph.get_cities()) {
-//         cout << city.title << endl;
-//     }
-//     //cout << logger.path_to_string(path) << endl;
+//     // auto graph = Graph();
+//     // auto logger = Logger(graph);
+//     // handle_file_input(graph);
+//     // const auto graphSearch = GraphSearch(graph, {});
+//     // const auto path = graphSearch.find_min_by_fare_among_shortest_path(0, 1);
+//     // for (const auto& [key, city]: graph.get_cities()) {
+//     //     cout << city.title << endl;
+//     // }
+//     char *c = "Севастополь";
+//     cout << std::size_t(c) << endl;
+//     // cout << logger.path_to_string(path) << endl;
 
 // } // test
 
@@ -740,7 +849,7 @@ int main(int argc, char **argv)
 
     if (argc < 2)
     {
-        handle_file_input(graph, "input.txt");
+        handle_file_input(graph, "../input.txt");
     }
     else
     {
@@ -748,11 +857,9 @@ int main(int argc, char **argv)
     }
 
     initscr();
+    noecho();
     cbreak();
     halfdelay(5);
-
-    int x_max, y_max;
-    getmaxyx(stdscr, y_max, x_max);
 
     // scrollok(stdscr, true);
     start_color();
@@ -780,68 +887,84 @@ int main(int argc, char **argv)
             if (result < 3)
             {
                 const auto city_pair = handle_pair_of_cities_input(graph);
-                clear();
-                refresh();
-                const auto restricted_transports = handle_restricted_transport_list_input(graph);
-                const auto graphSearch = GraphSearch(graph, restricted_transports);
-                clear();
-                refresh();
-
-                switch (result)
+                if (city_pair.first == -1)
                 {
-                case 0:
-                {
-                    const auto start_time = std::chrono::high_resolution_clock::now();
-                    const auto path = graphSearch.find_min_by_fare_among_shortest_path(city_pair.first, city_pair.second);
-                    total_time = estimate_time(start_time.time_since_epoch());
-
-                    const auto path_string = logger.path_to_string(path);
-
-                    printw("Искомый путь: ");
-                    attron(COLOR_PAIR(4));
-                    mvprintw(2, 0, path_string.c_str());
-                    attroff(COLOR_PAIR(4));
-
-                    log_path_to_file(path_string);
-
                     break;
                 }
-                case 1:
+                else
                 {
-                    const auto start_time = std::chrono::high_resolution_clock::now();
-                    const auto path = graphSearch.find_min_by_fare_path(city_pair.first, city_pair.second);
-                    total_time = estimate_time(start_time.time_since_epoch());
+                    clear();
+                    refresh();
+                    const auto restricted_transports = handle_restricted_transport_list_input(graph);
+                    const auto graphSearch = GraphSearch(graph, restricted_transports);
+                    clear();
+                    refresh();
 
-                    const auto path_string = logger.path_to_string(path);
+                    switch (result)
+                    {
+                    case 0:
+                    {
+                        const auto start_time = std::chrono::high_resolution_clock::now();
+                        const auto path = graphSearch.find_min_by_fare_among_shortest_path(city_pair.first, city_pair.second);
+                        total_time = estimate_time(start_time.time_since_epoch());
 
-                    printw("Искомый путь: ");
-                    attron(COLOR_PAIR(4));
-                    mvprintw(2, 0, path_string.c_str());
-                    attroff(COLOR_PAIR(4));
+                        const auto path_string = logger.path_to_string(path);
 
-                    log_path_to_file(path_string);
+                        printw("Искомый путь: ");
+                        attron(COLOR_PAIR(4));
+                        mvprintw(2, 0, path_string.c_str());
+                        attroff(COLOR_PAIR(4));
 
-                    break;
-                }
-                case 2:
-                {
-                    const auto start_time = std::chrono::high_resolution_clock::now();
-                    const auto path = graphSearch.find_min_by_cities_path(city_pair.first, city_pair.second);
-                    total_time = estimate_time(start_time.time_since_epoch());
+                        const auto log_title = "Путь минимальной стоимости среди кратчайших по времени";
+                        const auto city_from_title = "Город отправления: " + graph.get_city(city_pair.first).title;
+                        const auto city_to_title = "Город прибытия: " + graph.get_city(city_pair.second).title;
+                        log_paths_and_data(log_title, path_string, total_time, city_from_title, city_to_title);
 
-                    const auto path_string = logger.path_to_string(path);
+                        break;
+                    }
+                    case 1:
+                    {
+                        const auto start_time = std::chrono::high_resolution_clock::now();
+                        const auto path = graphSearch.find_min_by_fare_path(city_pair.first, city_pair.second);
+                        total_time = estimate_time(start_time.time_since_epoch());
 
-                    printw("Искомый путь: ");
-                    attron(COLOR_PAIR(4));
-                    mvprintw(2, 0, path_string.c_str());
-                    attroff(COLOR_PAIR(4));
+                        const auto path_string = logger.path_to_string(path);
 
-                    log_path_to_file(path_string);
+                        printw("Искомый путь: ");
+                        attron(COLOR_PAIR(4));
+                        mvprintw(2, 0, path_string.c_str());
+                        attroff(COLOR_PAIR(4));
 
-                    break;
-                }
-                default:
-                    break;
+                        const auto log_title = "Путь минимальной стоимости";
+                        const auto city_from_title = "Город отправления: " + graph.get_city(city_pair.first).title;
+                        const auto city_to_title = "Город прибытия: " + graph.get_city(city_pair.second).title;
+                        log_paths_and_data(log_title, path_string, total_time, city_from_title, city_to_title);
+
+                        break;
+                    }
+                    case 2:
+                    {
+                        const auto start_time = std::chrono::high_resolution_clock::now();
+                        const auto path = graphSearch.find_min_by_cities_path(city_pair.first, city_pair.second);
+                        total_time = estimate_time(start_time.time_since_epoch());
+
+                        const auto path_string = logger.path_to_string(path);
+
+                        printw("Искомый путь: ");
+                        attron(COLOR_PAIR(4));
+                        mvprintw(2, 0, path_string.c_str());
+                        attroff(COLOR_PAIR(4));
+
+                        const auto log_title = "Путь, минимальный по числу посещенных городов";
+                        const auto city_from_title = "Город отправления: " + graph.get_city(city_pair.first).title;
+                        const auto city_to_title = "Город прибытия: " + graph.get_city(city_pair.second).title;
+                        log_paths_and_data(log_title, path_string, total_time, city_from_title, city_to_title);
+
+                        break;
+                    }
+                    default:
+                        break;
+                    }
                 }
             }
             else
@@ -879,7 +1002,9 @@ int main(int argc, char **argv)
                     mvprintw(2, 0, paths_to_cities_string.c_str());
                     attroff(COLOR_PAIR(4));
 
-                    log_path_to_file(paths_to_cities_string);
+                    string log_title = "Множество городов (и минимальных по стоимости путей к ним), достижимых из ";
+                    log_title += graph.get_city(city_from_id).title + " не более чем за " + to_string(limit);
+                    log_paths_and_data(log_title, paths_to_cities_string, total_time, "", "");
 
                     break;
                 }
@@ -895,7 +1020,9 @@ int main(int argc, char **argv)
                     mvprintw(2, 0, paths_to_cities_string.c_str());
                     attroff(COLOR_PAIR(4));
 
-                    log_path_to_file(paths_to_cities_string);
+                    string log_title = "Множество городов (и минимальных по времени путей к ним), достижимых из ";
+                    log_title += graph.get_city(city_from_id).title + " не более чем за " + to_string(limit);
+                    log_paths_and_data(log_title, paths_to_cities_string, total_time, "", "");
 
                     break;
                 }
@@ -929,6 +1056,4 @@ int main(int argc, char **argv)
     }
     // curs_set(0);
     endwin();
-
-    log_time_and_memory_usage(total_time);
 }

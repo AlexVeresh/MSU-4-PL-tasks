@@ -34,9 +34,9 @@ namespace msu_tasks_cpp
         const Graph &graph_;
         const std::unordered_set<Graph::TransportId> &restricted_transports_;
 
-        const bool is_transport_valid(const Graph::TransportId transportId) const
+        const bool is_transport_valid(const Graph::TransportId transport_id) const
         {
-            return !restricted_transports_.count(transportId);
+            return !restricted_transports_.count(transport_id);
         }
     };
 
