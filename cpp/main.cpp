@@ -502,7 +502,7 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
 
     while (city_from_id == -1)
     {
-        city_from_id = validate_city_input(graph.get_cities(), city_from);
+        city_from_id = 1; // validate_city_input(graph.get_cities(), city_from);
         if (city_from_id == -1)
         {
             clear_n_lines(3, 4);
