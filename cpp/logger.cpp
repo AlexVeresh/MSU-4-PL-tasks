@@ -16,14 +16,10 @@ namespace msu_tasks_cpp
         {
 
             const auto cruise = graph_.get_cruise(path[i]);
-            const auto city_from = graph_.get_cities().at(cruise.from_city_id);
-
-            result += cruise.to_string(graph_); // city_from.title + " ---" + "(time: " + to_string(cruise.time) + ", fare: " + to_string(cruise.fare) + ")" + "---> ";
+            result += cruise.to_string(graph_);
 
             if (i != path.total_length() - 1)
             {
-                // const auto city_to = graph_.get_cities().at(cruise.to_city_id);
-                // result += city_to.title;
                 result += '\n';
             }
         }

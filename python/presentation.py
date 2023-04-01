@@ -4,7 +4,7 @@ from graph import Graph
 EXIT_APP = "EXIT_APP"
 
 
-def ctrl(x): x & 0x1F
+def ctrl(x): return x & 0x1F
 
 
 class UiController():
@@ -77,6 +77,7 @@ class UiController():
         i = 0
         c = self.stdscr.get_wch()
         while c != '\n':
+            # and ((c is int and (c < 258 or c > 261)) or (c is str)):
             if c != -1:
                 if ord(c) == 127 or ord(c) == cs.KEY_BACKSPACE:
                     if i > 0:
@@ -89,7 +90,7 @@ class UiController():
 
                     self.stdscr.clrtoeol()
 
-                elif c == ctrl(27):
+                elif ord(c) == ctrl(27):
                     return EXIT_APP
 
                 else:
@@ -253,7 +254,7 @@ class UiController():
                 self.clear_n_lines(9, 10)
                 self.stdscr.addstr(9, 0, "Введите корректный город прибытия")
                 self.stdscr.move(10, 0)
-                city_to = self.handle_string_input(9)
+                city_to = self.handle_string_input(10)
 
                 if city_to == EXIT_APP:
                     return -1, -1

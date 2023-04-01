@@ -4,9 +4,9 @@
 #include <cstring>
 #include <string>
 #include <set>
-#include <ncurses.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <ncurses.h>
 #include <locale>
 #include <chrono>
 #include <iomanip>
@@ -440,7 +440,7 @@ string handle_string_input(int row)
     bool backspace_tap_after_input = true;
     while ((c = getch()) != 10)
     {
-        if (c != -1)
+        if (c != -1 && (c < 258 || c > 261))
         {
             if (c == 127 || c == KEY_BACKSPACE)
             {
@@ -453,8 +453,15 @@ string handle_string_input(int row)
 
                 if (i > 0)
                 {
-                    str.pop_back();
-                    str.pop_back();
+                    if (str.back() < '0')
+                    {
+                        str.pop_back();
+                        str.pop_back();
+                    }
+                    else
+                    {
+                        str.pop_back();
+                    }
                     i -= 1;
                     move(row, i);
                 }
@@ -478,9 +485,28 @@ string handle_string_input(int row)
                 new_typed.push_back(char(c));
                 i++;
             }
+            else
+            {
+                backspace_tap_after_input = true;
+                attron(COLOR_PAIR(4));
+                printw("%c", c);
+                attroff(COLOR_PAIR(4));
+                str.push_back(char(c));
+                new_typed.push_back(char(c));
+                new_typed.push_back(char(c));
+                i += 2;
+            }
         }
     }
     return str;
+    // echo();
+    // char input[200];
+    // attron(COLOR_PAIR(4));
+    // getnstr(input, 200);
+    // attroff(COLOR_PAIR(4));
+    // std::string str(input);
+    // noecho();
+    // return input;
 }
 
 pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
@@ -549,7 +575,7 @@ pair<CityId, CityId> handle_pair_of_cities_input(Graph &graph)
             clear_n_lines(9, 10);
             mvprintw(9, 0, "Введите корректный город прибытия");
             move(10, 0);
-            city_to = handle_string_input(9);
+            city_to = handle_string_input(10);
             if (city_to == EXIT_APP)
             {
                 return make_pair(-1, -1);
@@ -820,21 +846,25 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
     return valid_transport_id_list;
 }
 
-// int main()
+// int main(int argc, char **argv)
 // {
 //     setlocale(LC_ALL, "ru_RU.UTF-8");
-//     // auto graph = Graph();
-//     // auto logger = Logger(graph);
-//     // handle_file_input(graph);
-//     // const auto graphSearch = GraphSearch(graph, {});
-//     // const auto path = graphSearch.find_min_by_fare_among_shortest_path(0, 1);
-//     // for (const auto& [key, city]: graph.get_cities()) {
-//     //     cout << city.title << endl;
-//     // }
-//     char *c = "Севастополь";
-//     cout << std::size_t(c) << endl;
-//     // cout << logger.path_to_string(path) << endl;
-
+//     auto graph = Graph();
+//     auto logger = Logger(graph);
+//     if (argc < 2)
+//     {
+//         handle_file_input(graph, "../input.txt");
+//     }
+//     else
+//     {
+//         handle_file_input(graph, argv[1]);
+//     }
+//     const auto graphSearch = GraphSearch(graph, {});
+//     const auto path = graphSearch.find_min_by_fare_among_shortest_path(0, 1);
+//     for (const auto &[key, city] : graph.get_cities())
+//     {
+//         cout << city.title << endl;
+//     }
 // } // test
 
 int main(int argc, char **argv)

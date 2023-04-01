@@ -64,6 +64,6 @@ namespace msu_tasks_cpp
         const auto city_from = graph.get_cities().at(from_city_id);
         const auto city_to = graph.get_cities().at(to_city_id);
 
-        return city_from.title + " ------> " + city_to.title + " (Время: " + std::to_string(time) + " у. е., Цена: " + std::to_string(fare) + " ₽)";
+        return city_from.title + " ------> " + city_to.title + " (Время: " + std::to_string(time) + " у. е. | Цена: " + std::to_string(fare) + " ₽)";
     };
 }
