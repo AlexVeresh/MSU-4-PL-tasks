@@ -2,7 +2,7 @@ from queue import Queue
 from graph import Graph
 from path import Path
 from math import inf
-from sortedcollections import SortedSet
+import heapq as h
 
 
 class GraphSearch:
@@ -20,13 +20,17 @@ class GraphSearch:
 
         pathes_to_all_cities = [Path()] * cities_count
 
-        current_city_ids = SortedSet()
-        current_city_ids.add(
-            (distancies_to_cities[start_city_id], start_city_id))
+        current_city_ids = [
+            (distancies_to_cities[start_city_id], start_city_id)]
+        h.heapify(current_city_ids)
 
         while len(current_city_ids) != 0:
-            from_city_id = current_city_ids[0][1]
-            current_city_ids.discard(current_city_ids[0])
+            current_item = h.heappop(current_city_ids)
+
+            if current_item[0] > distancies_to_cities[current_item[1]]:
+                continue
+
+            from_city_id = current_item[1]
 
             for cruise_id in self.__graph.get_city(from_city_id).cruise_ids:
                 to_city_id = self.__graph.get_cruise(cruise_id).to_city_id
@@ -37,28 +41,24 @@ class GraphSearch:
 
                 if self.__is_transport_valid(transport_type_id):
                     if distancies_to_cities[from_city_id] + time < distancies_to_cities[to_city_id]:
-                        current_city_ids.discard(
-                            (distancies_to_cities[to_city_id], to_city_id))
                         distancies_to_cities[to_city_id] = distancies_to_cities[from_city_id] + time
                         total_fares_to_cities[to_city_id] = total_fares_to_cities[from_city_id] + fare
                         pathes_to_all_cities[to_city_id] = pathes_to_all_cities[from_city_id] + \
                             self.__graph.get_cruise(cruise_id)
-                        current_city_ids.add(
-                            (distancies_to_cities[to_city_id], to_city_id))
+                        h.heappush(
+                            current_city_ids, (distancies_to_cities[to_city_id], to_city_id))
 
                     elif distancies_to_cities[from_city_id] + time == distancies_to_cities[to_city_id]:
                         current_fare = total_fares_to_cities[to_city_id]
                         new_fare = total_fares_to_cities[from_city_id] + fare
 
                         if new_fare < current_fare:
-                            current_city_ids.discard(
-                                (distancies_to_cities[to_city_id], to_city_id))
                             distancies_to_cities[to_city_id] = distancies_to_cities[from_city_id] + time
                             total_fares_to_cities[to_city_id] = total_fares_to_cities[from_city_id] + fare
                             pathes_to_all_cities[to_city_id] = pathes_to_all_cities[from_city_id] + \
                                 self.__graph.get_cruise(cruise_id)
-                            current_city_ids.add(
-                                (distancies_to_cities[to_city_id], to_city_id))
+                            h.heappush(
+                                current_city_ids, (distancies_to_cities[to_city_id], to_city_id))
 
         return pathes_to_all_cities[finish_city_id]
 
@@ -70,13 +70,17 @@ class GraphSearch:
 
         pathes_to_all_cities = [Path()] * cities_count
 
-        current_city_ids = SortedSet()
-        current_city_ids.add(
-            (distancies_to_cities[start_city_id], start_city_id))
+        current_city_ids = [
+            (distancies_to_cities[start_city_id], start_city_id)]
+        h.heapify(current_city_ids)
 
         while len(current_city_ids) != 0:
-            from_city_id = current_city_ids[0][1]
-            current_city_ids.discard(current_city_ids[0])
+            current_item = h.heappop(current_city_ids)
+
+            if current_item[0] > distancies_to_cities[current_item[1]]:
+                continue
+
+            from_city_id = current_item[1]
 
             for cruise_id in self.__graph.get_city(from_city_id).cruise_ids:
                 to_city_id = self.__graph.get_cruise(cruise_id).to_city_id
@@ -85,13 +89,11 @@ class GraphSearch:
                     cruise_id).transport_type_id
 
                 if distancies_to_cities[from_city_id] + fare < distancies_to_cities[to_city_id] and self.__is_transport_valid(transport_type_id):
-                    current_city_ids.discard(
-                        (distancies_to_cities[to_city_id], to_city_id))
                     distancies_to_cities[to_city_id] = distancies_to_cities[from_city_id] + fare
                     pathes_to_all_cities[to_city_id] = pathes_to_all_cities[from_city_id] + \
                         self.__graph.get_cruise(cruise_id)
-                    current_city_ids.add(
-                        (distancies_to_cities[to_city_id], to_city_id))
+                    h.heappush(
+                        current_city_ids, (distancies_to_cities[to_city_id], to_city_id))
 
         return pathes_to_all_cities[finish_city_id]
 
@@ -133,13 +135,17 @@ class GraphSearch:
 
         pathes_to_all_cities = [Path()] * cities_count
 
-        current_city_ids = SortedSet()
-        current_city_ids.add(
-            (distancies_to_cities[start_city_id], start_city_id))
+        current_city_ids = [
+            (distancies_to_cities[start_city_id], start_city_id)]
+        h.heapify(current_city_ids)
 
         while len(current_city_ids) != 0:
-            from_city_id = current_city_ids[0][1]
-            current_city_ids.discard(current_city_ids[0])
+            current_item = h.heappop(current_city_ids)
+
+            if current_item[0] > distancies_to_cities[current_item[1]]:
+                continue
+
+            from_city_id = current_item[1]
 
             for cruise_id in self.__graph.get_city(from_city_id).cruise_ids:
                 to_city_id = self.__graph.get_cruise(cruise_id).to_city_id
@@ -148,13 +154,11 @@ class GraphSearch:
                     cruise_id).transport_type_id
 
                 if distancies_to_cities[from_city_id] + fare < distancies_to_cities[to_city_id] and self.__is_transport_valid(transport_type_id):
-                    current_city_ids.discard(
-                        (distancies_to_cities[to_city_id], to_city_id))
                     distancies_to_cities[to_city_id] = distancies_to_cities[from_city_id] + fare
                     pathes_to_all_cities[to_city_id] = pathes_to_all_cities[from_city_id] + \
                         self.__graph.get_cruise(cruise_id)
-                    current_city_ids.add(
-                        (distancies_to_cities[to_city_id], to_city_id))
+                    h.heappush(
+                        current_city_ids, (distancies_to_cities[to_city_id], to_city_id))
 
         result = {}
 
@@ -174,13 +178,17 @@ class GraphSearch:
 
         pathes_to_all_cities = [Path()] * cities_count
 
-        current_city_ids = SortedSet()
-        current_city_ids.add(
-            (distancies_to_cities[start_city_id], start_city_id))
+        current_city_ids = [
+            (distancies_to_cities[start_city_id], start_city_id)]
+        h.heapify(current_city_ids)
 
         while len(current_city_ids) != 0:
-            from_city_id = current_city_ids[0][1]
-            current_city_ids.discard(current_city_ids[0])
+            current_item = h.heappop(current_city_ids)
+
+            if current_item[0] > distancies_to_cities[current_item[1]]:
+                continue
+
+            from_city_id = current_item[1]
 
             for cruise_id in self.__graph.get_city(from_city_id).cruise_ids:
                 to_city_id = self.__graph.get_cruise(cruise_id).to_city_id
@@ -189,13 +197,11 @@ class GraphSearch:
                     cruise_id).transport_type_id
 
                 if distancies_to_cities[from_city_id] + time < distancies_to_cities[to_city_id] and self.__is_transport_valid(transport_type_id):
-                    current_city_ids.discard(
-                        (distancies_to_cities[to_city_id], to_city_id))
                     distancies_to_cities[to_city_id] = distancies_to_cities[from_city_id] + time
                     pathes_to_all_cities[to_city_id] = pathes_to_all_cities[from_city_id] + \
                         self.__graph.get_cruise(cruise_id)
-                    current_city_ids.add(
-                        (distancies_to_cities[to_city_id], to_city_id))
+                    h.heappush(
+                        current_city_ids, (distancies_to_cities[to_city_id], to_city_id))
 
         result = {}
 

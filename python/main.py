@@ -19,12 +19,12 @@ def estimate_time(start_time):
 
 
 def log_paths_and_data(mode_title, response, estimated_time, city_from_title, city_to_title) -> None:
-    f = open("../logs.txt", 'r')
+    f = open("logs.txt", 'r')
     previous_content = f.read()
     result = ''
     f.close()
 
-    f = open("../logs.txt", 'w')
+    f = open("logs.txt", 'w')
 
     if len(previous_content) != 0 and previous_content != '\n':
         result += previous_content
@@ -101,13 +101,13 @@ def handle_file_input(graph: Graph, filename: str) -> None:
                 iter += 1
 
 
-def start(stdscr) -> None:
+def start(stdscr) -> str:
     res = ''
     graph = Graph()
     logger = Logger(graph)
 
     if len(sys.argv) < 2:
-        handle_file_input(graph, "../input.txt")
+        return 'Введите название файла, содержащего города'
 
     else:
         handle_file_input(graph, sys.argv[1])
@@ -267,18 +267,8 @@ def start(stdscr) -> None:
 
 
 def main():
-    a = cs.wrapper(start)
-    print(a)
-    # log_paths_and_data('log_title', a, 'total_time',
-    #                    'city_from_title', 'city_to_title')
-    # graph = Graph()
-    # logger = Logger(graph)
-    # graphSearch = GraphSearch(graph, set())
-    # handle_file_input(graph, "input_small.txt")
-    # for key, val in graph.cities.items():
-    #     print(key, '|', val, '|', val.cruise_ids)
-    # path = graphSearch.find_min_by_fare_path(0, 3)
-    # print(logger.path_to_string(path))
+    res = cs.wrapper(start)
+    print(res)
 
 
 if __name__ == '__main__':

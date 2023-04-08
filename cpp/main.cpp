@@ -69,7 +69,7 @@ void log_paths_and_data(
     string previous_input = "";
     string current_line = "";
     fstream file;
-    file.open("../logs.txt");
+    file.open("logs.txt");
     while (getline(file, current_line))
     {
         previous_input += current_line + '\n';
@@ -77,7 +77,7 @@ void log_paths_and_data(
     file.close();
 
     struct rusage usage;
-    ofstream myfile("../logs.txt");
+    ofstream myfile("logs.txt");
     string line;
     if (myfile.is_open())
     {
@@ -879,7 +879,8 @@ int main(int argc, char **argv)
 
     if (argc < 2)
     {
-        handle_file_input(graph, "../input.txt");
+        cout << "Введите название файла, содержащего города" << endl;
+        return 1;
     }
     else
     {
