@@ -61,7 +61,7 @@ namespace msu_tasks_cpp
                                                 time(_time),
                                                 fare(_fare) {}
 
-            const std::string to_string(const Graph& graph) const;                                    
+            const std::string to_string(const Graph &graph) const;
         };
 
         CityId add_city(const std::string &title);
@@ -102,6 +102,7 @@ namespace msu_tasks_cpp
 
     private:
         std::unordered_map<CityId, City> cities_;
+        std::unordered_map<std::string, CityId> titles_to_ids_;
         std::unordered_map<CruiseId, Cruise> cruises_;
         std::unordered_map<TransportId, Transport> transports_;
         CityId city_id_counter_ = 0;

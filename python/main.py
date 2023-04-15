@@ -4,7 +4,7 @@ from presentation import UiController
 from graph import Graph, Cruise
 from logger import Logger
 from graph_search import GraphSearch
-from time import time
+from time import time_ns
 from resource import getrusage, RUSAGE_SELF
 from datetime import date
 from platform import python_version
@@ -14,11 +14,18 @@ def high_divider() -> str: return "•"*120
 
 
 def estimate_time(start_time):
-    end_time = time()
+    end_time = time_ns()
     return end_time - start_time
 
 
-def log_paths_and_data(mode_title, response, estimated_time, city_from_title, city_to_title) -> None:
+def log_paths_and_data(
+    mode_type,
+    mode_title,
+    response,
+    estimated_time,
+    city_from_title,
+    city_to_title
+) -> None:
     f = open("logs.txt", 'r')
     previous_content = f.read()
     result = ''
@@ -48,9 +55,14 @@ def log_paths_and_data(mode_title, response, estimated_time, city_from_title, ci
     result += response
     result += "\n"
     result += "Время выполнения алгоритма поиска: " + \
-        str(estimated_time) + " секунд"
+        str(estimated_time / 1e+9) + " секунд"
     rusage = getrusage(RUSAGE_SELF)
     result += '\n' + "Памяти использовано: " + str(rusage.ru_maxrss) + '\n'
+
+    result += "maxrss: " + str(rusage.ru_maxrss) + ", "
+    result += "time: " + str(estimated_time / 1e+9) + " sec., "
+    result += "lang: py, "
+    result += "query type: " + str(mode_type) + '\n'
 
     f.write(result)
     f.close()
@@ -110,6 +122,7 @@ def start(stdscr) -> str:
         return 'Введите название файла, содержащего города'
 
     else:
+        print('Пожалуйста подождите, идет считывание из файла...')
         handle_file_input(graph, sys.argv[1])
 
     uiCrontroller = UiController(stdscr=stdscr, graph=graph)
@@ -136,7 +149,7 @@ def start(stdscr) -> str:
                     uiCrontroller.refresh()
 
                     if result == 0:
-                        start_time = time()
+                        start_time = time_ns()
                         path = graphSearch.find_min_by_fare_among_shortest_path(
                             from_city_id, to_city_id)
                         total_time = estimate_time(start_time)
@@ -151,10 +164,16 @@ def start(stdscr) -> str:
                         city_to_title = "Город прибытия: " + \
                             graph.get_city(to_city_id).title
                         log_paths_and_data(
-                            log_title, path_string, total_time, city_from_title, city_to_title)
+                            1,
+                            log_title,
+                            path_string,
+                            total_time,
+                            city_from_title,
+                            city_to_title
+                        )
 
                     elif result == 1:
-                        start_time = time()
+                        start_time = time_ns()
                         path = graphSearch.find_min_by_fare_path(
                             from_city_id, to_city_id)
                         total_time = estimate_time(
@@ -170,10 +189,16 @@ def start(stdscr) -> str:
                         city_to_title = "Город прибытия: " + \
                             graph.get_city(to_city_id).title
                         log_paths_and_data(
-                            log_title, path_string, total_time, city_from_title, city_to_title)
+                            2,
+                            log_title,
+                            path_string,
+                            total_time,
+                            city_from_title,
+                            city_to_title
+                        )
 
                     elif result == 2:
-                        start_time = time()
+                        start_time = time_ns()
                         path = graphSearch.find_min_by_cities_path(
                             from_city_id, to_city_id)
                         total_time = estimate_time(
@@ -189,7 +214,13 @@ def start(stdscr) -> str:
                         city_to_title = "Город прибытия: " + \
                             graph.get_city(to_city_id).title
                         log_paths_and_data(
-                            log_title, path_string, total_time, city_from_title, city_to_title)
+                            3,
+                            log_title,
+                            path_string,
+                            total_time,
+                            city_from_title,
+                            city_to_title
+                        )
 
             else:
                 city_from_id = uiCrontroller.handle_single_city_input()
@@ -213,7 +244,7 @@ def start(stdscr) -> str:
                 uiCrontroller.refresh()
 
                 if result == 3:
-                    start_time = time()
+                    start_time = time_ns()
                     paths_to_cities = graphSearch.find_cities_in_limit_cost(
                         city_from_id, limit)
                     total_time = estimate_time(start_time)
@@ -227,10 +258,16 @@ def start(stdscr) -> str:
                     log_title += graph.get_city(city_from_id).title + \
                         " не более чем за " + str(limit)
                     log_paths_and_data(
-                        log_title, paths_to_cities_string, total_time, "", "")
+                        4,
+                        log_title,
+                        paths_to_cities_string,
+                        total_time,
+                        "",
+                        ""
+                    )
 
                 elif result == 4:
-                    start_time = time()
+                    start_time = time_ns()
                     paths_to_cities = graphSearch.find_cities_in_limit_time(
                         city_from_id, limit)
                     total_time = estimate_time(start_time)
@@ -244,7 +281,13 @@ def start(stdscr) -> str:
                     log_title += graph.get_city(city_from_id).title + \
                         " не более чем за " + str(limit)
                     log_paths_and_data(
-                        log_title, paths_to_cities_string, total_time, "", "")
+                        5,
+                        log_title,
+                        paths_to_cities_string,
+                        total_time,
+                        "",
+                        ""
+                    )
 
         else:
             break

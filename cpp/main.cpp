@@ -60,6 +60,7 @@ void clear_n_lines(int start, int end)
 }
 
 void log_paths_and_data(
+    const int mode_type,
     const string mode_title,
     const string &result,
     float estimated_time,
@@ -116,12 +117,20 @@ void log_paths_and_data(
         {
             myfile << '\n'
                    << "Памяти использовано: " << usage.ru_maxrss << endl;
+            myfile << "maxrss: " << usage.ru_maxrss << ", ";
         }
         else
         {
             myfile << '\n'
-                   << "Памяти использовано: " << '0' << endl;
+                   << "Памяти использовано: "
+                   << "0" << endl;
+            myfile << "maxrss: "
+                   << "0"
+                   << ", ";
         }
+        myfile << "time: " << estimated_time << " sec., ";
+        myfile << "lang: cpp, ";
+        myfile << "query type: " << mode_type << endl;
         myfile.close();
     }
 }
@@ -859,12 +868,16 @@ unordered_set<TransportId> handle_restricted_transport_list_input(Graph &graph)
 //     {
 //         handle_file_input(graph, argv[1]);
 //     }
-//     const auto graphSearch = GraphSearch(graph, {});
-//     const auto path = graphSearch.find_min_by_fare_among_shortest_path(0, 1);
-//     for (const auto &[key, city] : graph.get_cities())
-//     {
-//         cout << city.title << endl;
-//     }
+//     // const auto graphSearch = GraphSearch(graph, {});
+//     // const auto path = graphSearch.find_min_by_fare_among_shortest_path(0, 1);
+//     // for (const auto &[key, city] : graph.get_cities())
+//     // {
+//     //     cout << city.title << endl;
+//     // }
+//     // for (const auto &[key, transport] : graph.get_transports())
+//     // {
+//     //     cout << transport.title << endl;
+//     // }
 // } // test
 
 int main(int argc, char **argv)
@@ -884,6 +897,7 @@ int main(int argc, char **argv)
     }
     else
     {
+        cout << "Пожалуйста подождите, идет считывание из файла..." << endl;
         handle_file_input(graph, argv[1]);
     }
 
@@ -949,7 +963,7 @@ int main(int argc, char **argv)
                         const auto log_title = "Путь минимальной стоимости среди кратчайших по времени";
                         const auto city_from_title = "Город отправления: " + graph.get_city(city_pair.first).title;
                         const auto city_to_title = "Город прибытия: " + graph.get_city(city_pair.second).title;
-                        log_paths_and_data(log_title, path_string, total_time, city_from_title, city_to_title);
+                        log_paths_and_data(1, log_title, path_string, total_time, city_from_title, city_to_title);
 
                         break;
                     }
@@ -969,7 +983,7 @@ int main(int argc, char **argv)
                         const auto log_title = "Путь минимальной стоимости";
                         const auto city_from_title = "Город отправления: " + graph.get_city(city_pair.first).title;
                         const auto city_to_title = "Город прибытия: " + graph.get_city(city_pair.second).title;
-                        log_paths_and_data(log_title, path_string, total_time, city_from_title, city_to_title);
+                        log_paths_and_data(2, log_title, path_string, total_time, city_from_title, city_to_title);
 
                         break;
                     }
@@ -989,7 +1003,7 @@ int main(int argc, char **argv)
                         const auto log_title = "Путь, минимальный по числу посещенных городов";
                         const auto city_from_title = "Город отправления: " + graph.get_city(city_pair.first).title;
                         const auto city_to_title = "Город прибытия: " + graph.get_city(city_pair.second).title;
-                        log_paths_and_data(log_title, path_string, total_time, city_from_title, city_to_title);
+                        log_paths_and_data(3, log_title, path_string, total_time, city_from_title, city_to_title);
 
                         break;
                     }
@@ -1035,7 +1049,7 @@ int main(int argc, char **argv)
 
                     string log_title = "Множество городов (и минимальных по стоимости путей к ним), достижимых из ";
                     log_title += graph.get_city(city_from_id).title + " не более чем за " + to_string(limit);
-                    log_paths_and_data(log_title, paths_to_cities_string, total_time, "", "");
+                    log_paths_and_data(4, log_title, paths_to_cities_string, total_time, "", "");
 
                     break;
                 }
@@ -1053,7 +1067,7 @@ int main(int argc, char **argv)
 
                     string log_title = "Множество городов (и минимальных по времени путей к ним), достижимых из ";
                     log_title += graph.get_city(city_from_id).title + " не более чем за " + to_string(limit);
-                    log_paths_and_data(log_title, paths_to_cities_string, total_time, "", "");
+                    log_paths_and_data(5, log_title, paths_to_cities_string, total_time, "", "");
 
                     break;
                 }

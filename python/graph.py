@@ -40,18 +40,13 @@ class Cruise:
 class Graph:
 
     def add_city(self, title) -> int:
-        city_id = -1
-
-        for key, value in self.__cities.items():
-            if value.title == title:
-                city_id = key
-                break
-
-        if city_id == -1:
+        if title in self.__titles_to_ids:
+            return self.__titles_to_ids[title]
+        else:
             city_id = self.__get_new_city_id()
             self.__cities[city_id] = City(city_id, title)
-
-        return city_id
+            self.__titles_to_ids[title] = city_id
+            return city_id
 
     def add_cruise(self, cruise: Cruise) -> None:
         new_cruise_id = self.__get_new_cruise_id()
@@ -95,6 +90,7 @@ class Graph:
     def get_cruises_amount(self) -> int: return self.__cruises.size()
 
     __cities: dict[int, City] = {}
+    __titles_to_ids: dict[str, int] = {}
     __cruises: dict[int, Cruise] = {}
     __transports: dict[int, Transport] = {}
     __city_id_counter: int = 0

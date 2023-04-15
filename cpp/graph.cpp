@@ -1,6 +1,7 @@
 #include "graph.hpp"
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 
 namespace msu_tasks_cpp
@@ -12,22 +13,18 @@ namespace msu_tasks_cpp
 
     Graph::CityId Graph::add_city(const string &title)
     {
-        CityId city_id = -1;
-        for (const auto &[key, value] : cities_)
+        const auto it = titles_to_ids_.find(title);
+        if (it != titles_to_ids_.end())
         {
-            if (value.title == title)
-            {
-                city_id = key;
-                break;
-            }
+            return it->second;
         }
-
-        if (city_id == -1)
+        else
         {
-            city_id = get_new_city_id();
+            const auto city_id = get_new_city_id();
             cities_.emplace(city_id, City(city_id, title));
+            titles_to_ids_.emplace(title, city_id);
+            return city_id;
         }
-        return city_id;
     }
 
     Graph::TransportId Graph::add_transport(const std::string &title)
